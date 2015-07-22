@@ -19,7 +19,7 @@ stream = BGPStream()
 rec = BGPRecord()
 start_interval= 1401623715
 ##stream.add_filter('project', 'ris')
-#stream.add_filter('collector', 'route-views2')
+stream.add_filter('collector', 'route-views2')
 #stream.add_filter('collector', 'rrc04')
 stream.add_filter('record-type', 'ribs')
 stream.add_filter('record-type', 'updates')
@@ -44,6 +44,7 @@ last_id = -1
 
 sub_prf=0
 moases={}
+out = open("2months.logs","a")
 ##########################################
 class Sub_moas():
   def __init__(self,prefix,start,sp_asn,sb_asn):
@@ -74,13 +75,13 @@ def get_peer_id(col, ip, asn):
 
 
 def add_to_tree(prefix, orig_as, diag,ases,time):
-    global p_tree, sub_prf, moases
-#    print "Adding ",prefix," ",orig_as
+    global p_tree, sub_prf, moases, out
     match=p_tree.search_best(prefix)
     if (match and prefix not in match.prefix):
         if orig_as not in match.data["asns"] and diag:
             sub_prf+=1
-            print "Sub prefix detected ", prefix," ",match.prefix," ",orig_as, ' ',str(match.data["asns"])[1:-1],"# ",str(ases)[1:-1]," bgptime ",time
+            printable= "Sub prefix detected "+ prefix+" "+match.prefix+" "+str(orig_as)+ " "+str(match.data["asns"])[1:-1]+"# "+str(ases)[1:-1]+" bgptime "+str(time)+"\n"
+            out.write(printable)
             sm=Sub_moas(prefix,time,match.data["asns"][0],orig_as);
             moases[prefix]=sm
     node=p_tree.search_exact(prefix)
@@ -95,23 +96,26 @@ def add_to_tree(prefix, orig_as, diag,ases,time):
 #
 def remove_sub_moas(prefix,time):
     global moases
+    global out
     if(prefix in moases):
         node = moases.get(prefix)
         start= node.start
         del moases[prefix]
-        print "Sub moas removed  ",prefix," Lasted for ",time-start," [Sub][Sup] ",node.subasn," ",node.superasn," bgptime ",time
+        printable= "Sub moas removed  "+prefix+" Lasted for "+str(time-start)+" [Sub][Sup] "+node.subasn+" "+node.superasn+" bgptime "+str(time)+"\n"
+        out.write(printable)
         to_be_del= []
-        """
+        
         for i in moases:
             if  p_tree.search_best(i)==prefix:
                 start=moases[i].start
                 node=moases[i]
-                print "Sub moas removed2  ",i," Lasted for ",time-start," [Sub][Sup] ",node.subasn," ",node.superasn
+                printable= "Sub moas removed2  "+i+" Lasted for "+str(time-start)+" [Sub][Sup] "+node.subasn+" "+node.superasn+" bgptime "+str(time)+"\n"
+                out.write(printable)
                 #del moases[i]
                 to_be_del.append(i)
         for i in to_be_del:
             del moases[i]                
-            """
+            
 ############################################################33
 prefx_dic ={}
 record_cnt = 0
@@ -129,12 +133,11 @@ print "Start at: ",start_interval
 threshold=3 # 3 seconds given to set it
 sys.stdout.flush()
 while(stream.get_next_record(rec)):
-    print "s"
+#    print "s"
     record_cnt += 1
     elem = rec.get_next_elem()
     while(elem):
-        print "### size of Rib: ",len(pref_as),"# size of Moases: ",len(moases),"##"
-        sys.stdout.flush()    
+#        print "### size of Rib: ",len(pref_as),"# size of Moases: ",len(moases),"##"
         if(elem.type != 'R' and elem.type != 'A'and elem.type!='W'):
             elem = rec.get_next_elem()
             continue
@@ -144,9 +147,11 @@ while(stream.get_next_record(rec)):
             init_time_set=elem.time
             create_new=1
             threshold=172800 #rebuild tree aftre two days
-        if(elem.time-size_init_time > size_print_thres):
-            size_init_time=elem.time
-
+        #prints every new seconds
+#        if(elem.time !=size_init_time):
+#            size_init_time=elem.time
+#            print elem.time
+#            sys.stdout.flush()    
         prefix = str(elem.fields['prefix'])
 
         if ("0.0.0.0/0" in prefix):
@@ -180,6 +185,7 @@ while(stream.get_next_record(rec)):
             pref_as[prefix]={}
             pref_as[prefix][p_id]=orig_as        
         else:
+#            new=0 # only check for new prefixes
             for ids in pref_as[prefix]:
                 if pref_as[prefix][ids]==orig_as:
                     new=0
@@ -194,6 +200,7 @@ while(stream.get_next_record(rec)):
         if new and first_block:
             add_to_tree(prefix,orig_as,1,ases,elem.time)
         if (create_new):
+            out.flush()
             first_block=1
             p_tree = radix.Radix()
             print "New Tree: Sub_prf= ",sub_prf," time: ",elem.time
@@ -209,3 +216,4 @@ print "Done"
 print elem_cnt
 print sub_prf
 print "err ", err_cnt
+out.close()

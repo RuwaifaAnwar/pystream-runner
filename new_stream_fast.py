@@ -89,7 +89,7 @@ def add_to_tree(prefix, orig_as, diag,ases,time):
     if (match and prefix not in match.prefix):
         if orig_as not in match.data["asns"] and diag:
             sub_prf+=1
-            printable= "Sub prefix detected "+ prefix+" "+match.prefix+" "+str(orig_as)+ " "+str(match.data["asns"])[1:-1]+"# "+str(ases)[1:-1]+" bgptime "+str(time)+"\n"
+            printable= "Sub prefix detected "+ prefix+" "+match.prefix+" "+str(orig_as)+ " "+str(match.data["asns"])[1:-1]+" # "+str(ases)[1:-1]+"  # bgptime "+str(time)+"\n"
             out.write(printable)
             add_to_super_pref(prefix,match.prefix)
             sm=Sub_moas(prefix,time,match.data["asns"][0],orig_as,match.prefix);
@@ -112,31 +112,28 @@ def remove_sub_moas(prefix,time):
         start= node.start
         del moases[prefix]
         del super_pref[node.super_prefix][prefix]
-        printable= "Sub moas removed  "+prefix+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" bgptime "+str(time)+"\n"
+        printable= "Sub moas removed  "+prefix+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" super prefix "+prefix+" bgptime "+str(time)+"\n"
         out.write(printable)
-        #Node to be removed was moas, so all it's submoases now belong to it's super_prefix
-        if node.super_prefix in super_pref:
+        #Node to be removed was moas, so all it's submoases (if any)  now belong to it's super_prefix
+#        if node.super_prefix in super_pref:
           #Changing ownerships
-          if prefix in super_pref:
-            for i in super_pref[prefix]:
-              super_pref[node.super_prefix].append(i)
-              moases[i].super_prefix=node.super_prefix
-            del super_pref[prefix]
-        else:
-          print "ERR super_prefix not found in super_prefix dic"
-          sys.stdout.flush()
+        if prefix in super_pref:
+          for i in super_pref[prefix]:
+            super_pref[node.super_prefix][i]=1
+            moases[i].super_prefix=node.super_prefix
+          del super_pref[prefix]
+#        else:
+#          print "ERR super_prefix not found in super_prefix dic"
+#          sys.stdout.flush()
         
         #when prefix removed wasn't a submoas itself. All it's subprefix are no longer a moas  
     if prefix in super_pref:
       for i in super_pref[prefix]:
-        if i in moases:
-          node=moases.get(i)
-          start=node.start
-          del moases[i]
-          printable= "Sub moas removed2  "+i+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" bgptime "+str(time)+"\n"
-          out.write(printable)
-        else:
-          print "ERR not found in moas"
+        node=moases.get(i)
+        start=node.start
+        del moases[i]
+        printable= "Sub moas removed2  "+i+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" super prefix "+prefix+" bgptime "+str(time)+"\n"
+        out.write(printable)
       del super_pref[prefix]               
 ############################################################33
 prefx_dic ={}
@@ -240,3 +237,8 @@ print elem_cnt
 print sub_prf
 print "err ", err_cnt
 out.close()
+
+
+
+
+

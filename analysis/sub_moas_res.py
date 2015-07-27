@@ -88,15 +88,17 @@ def find_relation(as1,as2):
     return "Missing"      
 
 ##
-def check_further(as1, super):
+def check_further(as1, super_a,prefix):
 #    print as1,super
-    ases_string=str(as1)+"   "+str(super)+" #"
+    ases_string=" "+str(as1)
+    prefix="ed "+prefix
     for line in lines:
-        if ases_string in line:
+        if "removed" not in line and prefix in line and ases_string in line:
 #            print line
             asp=line.split('#')[1]
-            if str(super) in asp:
-                
+            if str(super_a) in asp:
+                #print "Found orig ",lin
+                #print as1,super_a,prefix,line
                 return True
 
     return False
@@ -131,6 +133,8 @@ case_2346=0
 for line in lines:
     if line=="":
         continue
+    if "removed" in line:
+        continue
     if "23456" in line:
         case_2346+=1       
         continue
@@ -146,6 +150,7 @@ for line in lines:
     if check_private_asn(asn) or check_private_asn(super_asn):
         private_asns+=1
         continue
+
     moases+=1
     arrs=str(super_asn)+str(asn)
     if super_asn in uniq_supers:
@@ -162,7 +167,6 @@ for line in lines:
         siblings+=1
         continue
     rel=find_relation(super_asn,asn)
-#    print rel
     if "p-p" in rel:
         peers+=1
         continue
@@ -181,15 +185,17 @@ for line in lines:
         c_chain+=1
         continue
     if "Miss" in rel:
-        notFound+=1
-#        if check_further(asn,super_asn):
-#            inPath+=1
-#            continue
+        sub_prefix=toks[3]
+        if check_further(asn,super_asn,sub_prefix):
+            inPath+=1
+            continue
         #print line
 #        bad_guys.append(arrs)
+        notFound+=1
         continue
     
 print "Private ANSs ",private_asns
+print "AS23456 case ",case_2346
 print "Total moases ", moases
 print "Total_unique AS pairs" , tot    
 print prov,cust,peers,siblings,notFound,inPath,c_chain

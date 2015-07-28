@@ -8,6 +8,7 @@ import itertools
 import timeit
 import sys
 import time
+import operator
 
 fil = open("2test_2months.logs","r") 
 lines=fil.readlines()
@@ -125,6 +126,7 @@ asn_pairs=[]
 uniq_suspect=[]
 uniqs=[]
 uniq_supers={}
+uniq_subs={}
 moases=0
 bad_guys=[]
 bad=0
@@ -147,16 +149,21 @@ for line in lines:
     except:
         asn=int(toks[5])
 
+    arrs=str(super_asn)+str(asn)
+
+#    continue
+
+#    if super_asn in uniq_supers:
+#        uniq_supers[super_asn]+=1
+#    else:
+#        uniq_supers[super_asn]=1;
+#    continue
+
     if check_private_asn(asn) or check_private_asn(super_asn):
         private_asns+=1
         continue
 
     moases+=1
-    arrs=str(super_asn)+str(asn)
-    if super_asn in uniq_supers:
-        uniq_supers[super_asn]+=1
-    else:
-        uniq_supers[super_asn]=1;
 #    if arrs in bad_guys:
 #        bad+=1
     if arrs in uniqs:
@@ -192,6 +199,11 @@ for line in lines:
         #print line
 #        bad_guys.append(arrs)
         notFound+=1
+        if asn in uniq_subs:
+            uniq_subs[asn]+=1
+        else:
+            uniq_subs[asn]=1;
+
         continue
     
 print "Private ANSs ",private_asns
@@ -199,34 +211,26 @@ print "AS23456 case ",case_2346
 print "Total moases ", moases
 print "Total_unique AS pairs" , tot    
 print prov,cust,peers,siblings,notFound,inPath,c_chain
-##
 print "Bad :",bad    
 
+##
+
+
 
 ##
-print "Total super_Asns", len(uniq_supers)
+
 arr=[]
-for i in uniq_supers:
-    arr.append(uniq_supers[i])
-#    if uniq_supers[i]==57:
-#        print i
-##        
-sorted_data = np.sort(arr)
+vals=list(uniq_subs.values())
 
-print sum(sorted_data[-5:-1])
-print sum(sorted_data)
 
-##
-#print uniq_supers[721]
-#print len(sorted_data)
-"""
-yvals=np.arange(len(sorted_data))/float(len(sorted_data))
+sorted_data=np.sort(vals)
+#print sorted[-5:]
 
-plt.plot(sorted_data,yvals)
-plt.axis([0,100,0,1])
-plt.ylabel('CDF')
-plt.xlabel('Percentage visibility of highest ASN')
-plt.title('CDF showing skewness in MOAS visibility')
-#plt.show()
-#plt.savefig('cdf.png')
-"""
+for j in sorted_data[-50:]:
+    for i in uniq_subs:
+#        arr.append(uniq_supers[i])
+        if uniq_subs[i]==j:
+            print "ASN",i,j
+#sorted_x = sorted(uniq_subs.items(), key=operator.itemgetter(1))
+#print uniq_subs[5]
+

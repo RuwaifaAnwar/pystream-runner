@@ -152,6 +152,7 @@ for line in lines:
         continue
 
     moases+=1
+    continue
     arrs=str(super_asn)+str(asn)
     if super_asn in uniq_supers:
         uniq_supers[super_asn]+=1

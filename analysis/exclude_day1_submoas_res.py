@@ -145,7 +145,9 @@ for line in lines:
 
     if len(toks) < 7:
         continue
-    if toks[-1] < setting_time: # doing nothing for the first day
+    if int(toks[-1]) < setting_time: # doing nothing for the first day
+        #print "evaded"
+        #break
         continue
     try:
         super_asn=int(toks[6])
@@ -204,13 +206,13 @@ for line in lines:
         #print line
 #        bad_guys.append(arrs)
         notFound+=1
-        """
+        
         if asn in uniq_subs:
             uniq_subs[asn]+=1
         else:
             uniq_subs[asn]=1;
         print line
-        """
+        
         continue
     
 print "Private ANSs ",private_asns
@@ -226,7 +228,7 @@ print "Bad :",bad
 
 ##
 
-"""
+
 arr=[]
 vals=list(uniq_subs.values())
 
@@ -241,4 +243,4 @@ for j in sorted_data[-50:]:
             print "ASN",i,j
 #sorted_x = sorted(uniq_subs.items(), key=operator.itemgetter(1))
 #print uniq_subs[]
-"""
+

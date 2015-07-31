@@ -44,15 +44,17 @@ last_id = -1
 
 sub_prf=0
 moases={}
-out = open("2months.logs","a")
+super_pref={}  #stores super_prefixes for Moases
+out = open("2test_2months.logs","a")
 ##########################################
 class Sub_moas():
-  def __init__(self,prefix,start,sp_asn,sb_asn):
+  def __init__(self,prefix,start,sp_asn,sb_asn,super_p):
     self.start=start
     self.prefix=prefix
     self.end=-1
     self.superasn=sp_asn
     self.subasn=sb_asn
+    self.super_prefix=super_p
 p_tree = radix.Radix()
 def get_peer_id(col, ip, asn):
     global info_id
@@ -72,7 +74,14 @@ def get_peer_id(col, ip, asn):
     # print peer_id, id_sig[peer_id]
     return peer_id
 
-
+# build dicts for super_prefixes, so that when a super prefix is removed, it's correspoding sub prefixes are removed
+def add_to_super_pref(sub, super_p):
+    global super_pref
+    if super_p in super_pref:
+      super_pref[super_p][sub]=1
+    else:
+      super_pref[super_p]={}
+      super_pref[super_p][sub]=1
 
 def add_to_tree(prefix, orig_as, diag,ases,time):
     global p_tree, sub_prf, moases, out
@@ -80,9 +89,10 @@ def add_to_tree(prefix, orig_as, diag,ases,time):
     if (match and prefix not in match.prefix):
         if orig_as not in match.data["asns"] and diag:
             sub_prf+=1
-            printable= "Sub prefix detected "+ prefix+" "+match.prefix+" "+str(orig_as)+ " "+str(match.data["asns"])[1:-1]+"# "+str(ases)[1:-1]+" bgptime "+str(time)+"\n"
+            printable= "Sub prefix detected "+ prefix+" "+match.prefix+" "+str(orig_as)+ " "+str(match.data["asns"])[1:-1]+" # "+str(ases)[1:-1]+"  # bgptime "+str(time)+"\n"
             out.write(printable)
-            sm=Sub_moas(prefix,time,match.data["asns"][0],orig_as);
+            add_to_super_pref(prefix,match.prefix)
+            sm=Sub_moas(prefix,time,match.data["asns"][0],orig_as,match.prefix);
             moases[prefix]=sm
     node=p_tree.search_exact(prefix)
     if (node):
@@ -93,29 +103,38 @@ def add_to_tree(prefix, orig_as, diag,ases,time):
         p_tree.add(prefix)
         new_node.data["asns"] = []
         new_node.data["asns"].append(orig_as)
-#
+
+#For every removed prefix from rib, looks for sub_moases that can be removed
 def remove_sub_moas(prefix,time):
-    global moases
-    global out
+    global moases, out, super_pref
     if(prefix in moases):
         node = moases.get(prefix)
         start= node.start
         del moases[prefix]
-        printable= "Sub moas removed  "+prefix+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" bgptime "+str(time)+"\n"
+        del super_pref[node.super_prefix][prefix]
+        printable= "Sub moas removed  "+prefix+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" super prefix "+prefix+" bgptime "+str(time)+"\n"
         out.write(printable)
-        to_be_del= []
+        #Node to be removed was moas, so all it's submoases (if any)  now belong to it's super_prefix
+#        if node.super_prefix in super_pref:
+          #Changing ownerships
+        if prefix in super_pref:
+          for i in super_pref[prefix]:
+            super_pref[node.super_prefix][i]=1
+            moases[i].super_prefix=node.super_prefix
+          del super_pref[prefix]
+#        else:
+#          print "ERR super_prefix not found in super_prefix dic"
+#          sys.stdout.flush()
         
-        for i in moases:
-            if  p_tree.search_best(i)==prefix:
-                start=moases[i].start
-                node=moases[i]
-                printable= "Sub moas removed2  "+i+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" bgptime "+str(time)+"\n"
-                out.write(printable)
-                #del moases[i]
-                to_be_del.append(i)
-        for i in to_be_del:
-            del moases[i]                
-            
+        #when prefix removed wasn't a submoas itself. All it's subprefix are no longer a moas  
+    if prefix in super_pref:
+      for i in super_pref[prefix]:
+        node=moases.get(i)
+        start=node.start
+        del moases[i]
+        printable= "Sub moas removed2  "+i+" Lasted for "+str(time-start)+" [Sub][Sup] "+str(node.subasn)+" "+str(node.superasn)+" super prefix "+prefix+" bgptime "+str(time)+"\n"
+        out.write(printable)
+      del super_pref[prefix]               
 ############################################################33
 prefx_dic ={}
 record_cnt = 0
@@ -203,7 +222,8 @@ while(stream.get_next_record(rec)):
             out.flush()
             first_block=1
             p_tree = radix.Radix()
-            print "New Tree: Sub_prf= ",sub_prf," time: ",elem.time
+            print "New Tree: Sub_prf= ",len(moases)," time: ",elem.time
+            sys.stdout.flush()
             for prefix in pref_as:
                 for peer_ids in pref_as[prefix]:
                     add_to_tree(prefix,pref_as[prefix][peer_ids],0,ases,elem.time)
@@ -217,3 +237,8 @@ print elem_cnt
 print sub_prf
 print "err ", err_cnt
 out.close()
+
+
+
+
+

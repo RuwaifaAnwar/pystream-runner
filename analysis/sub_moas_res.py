@@ -9,6 +9,7 @@ import sys
 import time
 import operator
 import re
+out = open("full_out_bads_detailed.logs","a") 
 fil = open("2test_2months.logs","r") 
 lines=fil.readlines()
 
@@ -88,8 +89,17 @@ def find_relation(as1,as2):
     return "Missing"      
 
 ##
+seen_checks={}
 def check_further(as1, super_a,prefix):
-#    print as1,super
+    global seen_checks  
+    strr=str(as1)+" "+str(super_a)+" "+str(prefix)
+    try:
+        if strr in seen_checks:
+            return seen_checks[strr]
+    except Exception,e: 
+        print str(e)
+        print as1,super_a,prefix
+        print "strr is: ",strr
     ases_string=" "+str(as1)
     prefix="ed "+prefix
     for line in lines:
@@ -99,8 +109,9 @@ def check_further(as1, super_a,prefix):
             if str(super_a) in asp:
                 #print "Found orig ",lin
                 #print as1,super_a,prefix,line
+                seen_checks[strr]=1
                 return True
-
+    seen_checks[strr]=0
     return False
 
 def check_private_asn(as1):
@@ -131,6 +142,10 @@ bad_guys=[]
 bad=0
 private_asns=0
 case_2346=0
+
+
+ttime=1401623735
+day2=ttime+86400
 for line in lines:
     if line=="":
         continue
@@ -143,15 +158,17 @@ for line in lines:
 
     if len(toks) < 7:
         continue
+    time=int(toks[-1])
+    if time < day2:
+        continue
     try:
         super_asn=int(toks[6])
         asn=int(toks[5])
     except:
         asn=int(toks[5])
-        super_asn=toks[6].split(',')[0]
+        super_asn=int(toks[6].split(',')[0])
 
     arrs=str(super_asn)+" "+str(asn)
-#    continue
 
 #    if super_asn in uniq_supers:
 #        uniq_supers[super_asn]+=1
@@ -164,48 +181,62 @@ for line in lines:
         continue
 
     moases+=1
-#    if arrs in bad_guys:
-#        bad+=1
+    
+    """# Now checks for every string
     if arrs in uniqs:
         continue
     uniqs.append(arrs)
+    """
     tot+=1
     if check_siblings(super_asn,asn):
         siblings+=1
+        out.write(line)
         continue
     rel=find_relation(super_asn,asn)
     if "p-p" in rel:
         peers+=1
+        line="ppBAD"+line
+        out.write(line)
         continue
     if "c-p" in rel:
         prov+=1
+        line="prBAD"+line
+        out.write(line)
 #        bad_guys.append(arrs)
         continue
     if "p-c" in rel:
         cust+=1
+        out.write(line)
         continue
     asp=line.split('#')[1]
     if str(super_asn) in asp:
         inPath+=1
+        out.write(line)
         continue
     if super_asn in cc_dict and asn in cc_dict[super_asn]:
         c_chain+=1
+        out.write(line)
         continue
     if "Miss" in rel:
         sub_prefix=toks[3]
         if check_further(asn,super_asn,sub_prefix):
             inPath+=1
+            out.write(line)
             continue
-        #print line
 #        bad_guys.append(arrs)
         notFound+=1
+        line="aBAD"+line
+        out.write(line)
+        """
         if asn in uniq_subs:
             uniq_subs[asn]+=1
         else:
             uniq_subs[asn]=1;
-        print line
+#        print line
+        """
         continue
     
+out.close()
 print "Private ANSs ",private_asns
 print "AS23456 case ",case_2346
 print "Total moases ", moases

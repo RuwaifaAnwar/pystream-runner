@@ -1,0 +1,177 @@
+sub asns
+ASN 27431 483
+ASN 246 484
+ASN 24514 489
+ASN 4436 489
+ASN 24514 489
+ASN 4436 489
+ASN 5800 515
+ASN 391 533
+ASN 2914 564
+ASN 20357 564
+ASN 2914 564
+ASN 20357 564
+ASN 390 567
+ASN 491 572
+ASN 48159 592
+ASN 174 601
+ASN 2072 625
+ASN 18566 627
+ASN 38370 662
+ASN 38197 663
+ASN 21766 726
+ASN 5237 730
+ASN 16625 738
+ASN 46690 774
+ASN 10620 860
+ASN 4766 866
+ASN 35819 872
+ASN 2386 879
+ASN 52470 881
+ASN 27066 885
+ASN 701 1032
+ASN 5953 1111
+ASN 60345 1137
+ASN 65000 1162
+ASN 17228 1170
+ASN 23969 1172
+ASN 1501 1199
+ASN 28573 1199
+ASN 1501 1199
+ASN 28573 1199
+ASN 25003 1206
+ASN 22394 1271
+253 ASN 19905 7
+5254 ASN 36351 7
+5255 ASN 24138 7
+5256 ASN 8151 7
+5257 ASN 36930 7
+
+
+ASN 47331 36822
+#################################3
+
+ASN 16625 27
+ASN 4436 27
+ASN 16625 27 Akamai
+ASN 4436 27 nLayer Tier1
+ASN 22698 48 Columbian ISP Hijacker
+ASN 20940 58 Akamai Content Networks
+ASN 28573 59 Brazil Hijacker
+ASN 17964 112
+sdsdssdsd
+359 ASN 7046 11
+360 ASN 8151 11 Uninet Mexico
+361 ASN 3491 1239 PCCW global
+364 ASN 10835 13 Visionary
+365 ASN 6453 13 TATA
+366 ASN 4847 14 China Net
+369 ASN 174 15 Cogent
+370 ASN 701 15 Verizon
+373 ASN 7029 16 Windstream
+374 ASN 24560 16 Bharti Airtel
+375 ASN 4323 19 tw telecom (Level3)
+376 ASN 209 20 Qwest
+377 ASN 26415 21 Verisgin
+378 ASN 7018 22 AT&T 
+379 ASN 22698 48 columbian
+380 ASN 28573 57 Brazilian
+
+
+For peers, it's Tier 1 ISP.Tier 1 ISP are causing submoas
+209|1239|0 Qwest and sprint Sub prefix detected 63.173.122.0/23 63.160.0.0/12 209 1239
+Sub prefix detected 207.149.230.0/23 207.149.0.0/16 209 3561
+Sub prefix detected 23.34.60.0/23 23.34.48.0/20 209 20940	
+
+This columbian AS is fishy
+Sub prefix detected 217.118.69.0/24 217.118.68.0/22 22698 16345 Russian ISP
+Sub prefix detected 217.148.144.0/24 217.148.144.0/20 22698 2119  Norway ISP 
+Sub prefix detected 217.174.69.0/24 217.174.64.0/19 22698 25169 Sweden
+Sub prefix detected 217.171.140.0/22 217.171.128.0/20 22698 60339 UK
+
+### And this Brazilian ISP too
+Sub prefix detected 99.198.108.116/32 99.198.96.0/19 28573 32475  US ISP singlehop
+Sub prefix detected 94.23.74.243/32 94.23.0.0/16 28573 16276 France 
+Sub prefix detected 93.115.84.194/32 93.115.80.0/21 28573 39743 Romania
+Sub prefix detected 54.232.82.207/32 54.232.0.0/17 28573 16509 They didn't even spare Amazon :P
+
+
+*************
+
+The Case of Tier1 ISPS: (Ask ChO opinion)
+Penn state verizon
+Sub prefix detected 104.38.0.0/16 104.38.0.0/15 7018 3999 # '7018'  # bgptime 1406734194
+Sub moas removed  104.38.0.0/16 Lasted for 2199 [Sub][Sup] 7018 3999 super prefix 104.38.0.0/16 bgptime 1406736393
+
+Verizon AT*T case . IP block?
+These two blocks have been announced by AT&T for long time.
+Sub prefix detected 63.80.174.0/24 63.80.0.0/12 7018 701 # '8492', '9002', '2914', '7018'  # bgptime 1401624003
+Sub prefix detected 63.81.72.0/24 63.80.0.0/12 7018 701 # '8492', '9002', '2914', '7018'  # bgptime 1401624003
+
+with Cogent 
+Sub prefix detected 199.29.211.0/24 199.29.0.0/16 7018 174 # '8492', '20485', '3356', '7018'  # bgptime 1401624016
+Sub prefix detected 199.29.212.0/24 199.29.0.0/16 7018 174 # '8492', '20485', '3356', '7018'  # bgptime 1401624016
+
+wit DOS (Dept. of Secretary)
+Sub prefix detected 169.252.255.0/24 169.252.128.0/17 7018 6966 # '8492', '9002', '2914', '7018'  # bgptime 1401624011
+Sub moas removed  169.252.255.0/24 Lasted for 2683924 [Sub][Sup] 7018 6966 super prefix 169.252.255.0/24 bgptime 1404307935
+https://stat.ripe.net/169.252.128.0%2F17#tabId=routing
+Some Findings:
+We have one route collector peering with 7018. Here 7018 is announcing the prefix for DoS without having DoS as the orgin. So if someone is playing foul, it's 7018. According to ripe stats, providers of DOS are Level3 and Verizon, not AT&T.
+
+
+
+With 2152 Educational network.
+https://stat.ripe.net/209.129.0.0%2F16#tabId=routing
+
+
+AS23084 Continental Casualty Co. (CNA)
+Sub prefix detected 159.10.254.0/24 159.10.0.0/16 7018 23084 # '8492', '9002', '2914', '7018'  # bgptime 1401624011
+Sub prefix detected 159.10.254.0/24 159.10.0.0/16 7018 23084 # '1299', '7018'  # bgptime 1406713754
+
+
+AS21188
+Unilver UK.Seriously?
+
+Announcing customer path
+AS19072 is customer. AS17231 also cust
+Sub prefix detected 209.66.246.0/23 209.66.224.0/19 7018 19072 # '8492', '9002', '2914', '7018'  # bgptime 1401624020
+
+These are siblings:
+AS2386 AT&T Data Communications Services (Prolly a sibling)
+AS23148 TERRENAP DATA CENTERS, INC. (Sibling with Verizon)
+
+****************
+AS701 being superASN in unrelated cases
+Cases where AS no longer exist
+Sub prefix detected 198.168.224.0/24 198.168.0.0/16 15078 701 # '3561', '1299', '5580', '15078'  # bgptime 1404426043
+
+
+Siblings AS36351 AS21844
+
+
+**********************
+Full file:
+Violations  13045
+Miss:  89069
+Clean:  128148
+Total:  227917
+5.7% violations
+
+****GOOD*****
+Violations  9585
+Miss:  67755
+Clean:  45713
+Total:  121262
+
+Broken Paths: 55%
+Violations: 7.9%
+
+***BAD****
+Violations  1355
+Miss:  7248
+Clean:  25221
+Total:  33345
+
+Violations 4.0%
+Broken Paths:22%

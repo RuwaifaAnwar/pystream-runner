@@ -1,0 +1,62 @@
+
+Wrong Inferences:
+701-12087 peer-peer according to topology
+ASpath exists 12087-701-174 (174 and 701 are clealy peers. Three peers cant exist in a triplet)
+Also 12087 is customer all Tier 1s
+
+32385-3549 (Global Crossing)
+So 32385 is peer of 3549 according to AS rank
+But we have ASPATH 
+1299', '3356', '32385' 
+Since 3356 is sibling of 3549. if 3356 is provider of 32385, 3549 should also be provider fo 32385
+
+14037-3549	
+ASPATH: '3561', '3356', '14037'
+customer of 3357
+peer of 3549
+
+1239-20081
+Same story 
+
+Discussion about IP transfer
+SuperASN: 3816 (Columbia)
+35 Super AS
+SubASN 14080,27817 (Both from Columbia)
+
+SueprASN: Cellco DBA Verizon /16,/18
+SuperASN
+
+===================================================
+
+
+35819 34400 Both etisalat, should be siblings
+8717 8672  Mobiltel siblings
+27841 27947 Suspected case of inverted inference
+
+Level3 siblings
+3549 = LVLT-ARIN|20120130|Level 3 Communications, Inc.|US|ARIN
+3356 = LVLT-ARIN|20120130|Level 3 Communications, Inc.|US|ARIN
+
+7018 2386 AT&T siblings
+7018   ATTW-Z-ARIN = ATTW-ARIN|20130118|AT&T Services, Inc.|US|ARIN
+2386   ADCS-1-ARIN = ADCS-1-ARIN|20110924|A|US|ARIN
+
+42 715 WoodyNet	
+42 = WOODYN-ARIN|20130402|WoodyNet|US|ARIN
+715 = WOODYN-Z-ARIN|20110924|WoodyNet|US|ARIN
+
+701 6541 Verizon Siblings
+
+
+1239->1257
+https://stat.ripe.net/130.244.0.0%2F16#tabId=routing
+
+Different Organization ID, same name:
+ATTSE-ARIN|20131210|AT&T Services, Inc.|US|ARIN
+ATTSE-Z-ARIN|20131210|AT&T Services, Inc.|US|ARIN
+ATTW-ARIN|20130118|AT&T Services, Inc.|US|ARIN
+ATTW-Z-ARIN|20130118|AT&T Services, Inc.|US|ARIN
+
+
+both are akamai
+aBADSub prefix detected 72.247.234.0/23 72.246.0.0/15 20940 35994, 31377 # '3130', '2914', '3257', '20940'  # bgptime 1401734738

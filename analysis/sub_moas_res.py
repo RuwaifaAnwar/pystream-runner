@@ -9,7 +9,7 @@ import sys
 import time
 import operator
 import re
-out = open("full_out_bads_detailed.logs","a") 
+out = open("window_full_out_bads_detailed.logs","a") 
 fil = open("2test_2months.logs","r") 
 lines=fil.readlines()
 
@@ -143,13 +143,16 @@ bad=0
 private_asns=0
 case_2346=0
 
+window={}
+#604800
 
 ttime=1401623735
 day2=ttime+86400
+sec_in_window=604800 #week
+sec_in_day=86400
+next_check=day2+sec_in_day
 for line in lines:
     if line=="":
-        continue
-    if "removed" in line:
         continue
     if "23456" in line:
         case_2346+=1       
@@ -161,24 +164,47 @@ for line in lines:
     time=int(toks[-1])
     if time < day2:
         continue
-    try:
-        super_asn=int(toks[6])
-        asn=int(toks[5])
-    except:
-        asn=int(toks[5])
-        super_asn=int(toks[6].split(',')[0])
-
+    if time > next_check:
+        to_be_rem=[]
+        for i in window:
+            if (time - window[i]) < sec_in_window:
+                to_be_rem.append(i)
+        for i in to_be_rem:
+            del window[i]
+        next_check+=sec_in_day
+    if "removed" in line:
+        super_asn=int(toks[9])
+        asn=int(toks[8])
+        arrs=str(super_asn)+" "+str(asn)
+        if arrs in window:
+            del window[arrs]
+        continue
+    else:
+        try:
+            super_asn=int(toks[6])
+            asn=int(toks[5])
+        except:
+            asn=int(toks[5])
+            super_asn=int(toks[6].split(',')[0])
+            
+    if check_private_asn(asn) or check_private_asn(super_asn):
+        private_asns+=1
+        continue
+        
     arrs=str(super_asn)+" "+str(asn)
-
+    if arrs not in window:
+        window[arrs]=time
+        #new one
+    else:
+        window[arrs]=time
+        continue
 #    if super_asn in uniq_supers:
 #        uniq_supers[super_asn]+=1
+
 #    else:
 #        uniq_supers[super_asn]=1;
 #    continue
 
-    if check_private_asn(asn) or check_private_asn(super_asn):
-        private_asns+=1
-        continue
 
     moases+=1
     
@@ -266,3 +292,4 @@ for j in sorted_data[-50:]:
 #sorted_x = sorted(uniq_subs.items(), key=operator.itemgetter(1))
 #print uniq_subs[]
 """
+ 

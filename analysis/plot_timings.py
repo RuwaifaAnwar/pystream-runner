@@ -10,4 +10,5 @@ plt.axis([2,1000,0,1])
 plt.ylabel('CDF')
 plt.xlabel('Time durations (seconds)')
 plt.title('SubMoas durations for verified hijacks')
+
 plt.show()

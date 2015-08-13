@@ -9,7 +9,7 @@ start_interval=1401623715
 change_at=1401623715+3600
 det=rem=0
 det_a=[]
-rem_a=[]
+rem_a=[]    
 mean_a=[]
 for line in lines:
     toks=line.split()
@@ -47,7 +47,7 @@ plt.plot(a_arr,y_mean)
 print np.mean(mean_a)
 print (sum(mean_a)/len(mean_a))
 plt.ylim([-200,200])
-plt.xlim([-5,1000])
+plt.xlim([-5,1000])  
 
 plt.ylabel('Number of Occurences')
 plt.xlabel('Time (Hours)')

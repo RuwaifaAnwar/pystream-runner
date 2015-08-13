@@ -34,7 +34,7 @@ print arr[0:5]
 #plt.legend(['SubMoas Detected', 'SubMoas Removed'], loc='upper right')
 plt.ylabel('Number of Occurences')
 plt.xlabel('Time (Minutes)')
-plt.title('Net MOASes added')
+    plt.title('Net MOASes added')
 plt.yticks(np.arange(-700, max(arr)+1, 200.0))
 plt.axis([0,max(a_arr),-800,700])
 plt.show()

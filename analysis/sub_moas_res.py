@@ -9,7 +9,7 @@ import sys
 import time
 import operator
 import re
-out = open("window_full_out_bads_detailed.logs","a") 
+out = open("dumpwindow_2w_full_out_bads_detailed.logs","a") 
 fil = open("2test_2months.logs","r") 
 lines=fil.readlines()
 
@@ -148,14 +148,19 @@ window={}
 
 ttime=1401623735
 day2=ttime+86400
-sec_in_window=604800 #week
 sec_in_day=86400
+sec_in_window=1209600 #2 week
+#sec_in_window=604800 #1 week
 next_check=day2+sec_in_day
+#sec_in_window=1814000 #3 week
+print_window=ttime+1
 for line in lines:
     if line=="":
         continue
     if "23456" in line:
         case_2346+=1       
+        continue
+    if "removed" in line:
         continue
     toks=line.split()
 
@@ -164,14 +169,24 @@ for line in lines:
     time=int(toks[-1])
     if time < day2:
         continue
+    
     if time > next_check:
+#        print "removing in ",time
         to_be_rem=[]
         for i in window:
-            if (time - window[i]) < sec_in_window:
+            if (time - window[i]) > sec_in_window:
                 to_be_rem.append(i)
         for i in to_be_rem:
             del window[i]
-        next_check+=sec_in_day
+        next_check+=1200
+    
+    if time - print_window > 1200:
+        print "alarms"
+    if time > print_window:
+        win_size= "Window_size "+str(len(window))+"\n"
+        out.write(win_size)
+        print_window+=30
+    """
     if "removed" in line:
         super_asn=int(toks[9])
         asn=int(toks[8])
@@ -179,25 +194,27 @@ for line in lines:
         if arrs in window:
             del window[arrs]
         continue
-    else:
-        try:
-            super_asn=int(toks[6])
-            asn=int(toks[5])
-        except:
-            asn=int(toks[5])
-            super_asn=int(toks[6].split(',')[0])
+    """
+    #else:
+    try:
+        super_asn=int(toks[6])
+        asn=int(toks[5])
+    except:
+        asn=int(toks[5])
+        super_asn=int(toks[6].split(',')[0])
             
+    arrs=str(super_asn)+" "+str(asn)
     if check_private_asn(asn) or check_private_asn(super_asn):
         private_asns+=1
         continue
         
-    arrs=str(super_asn)+" "+str(asn)
     if arrs not in window:
         window[arrs]=time
         #new one
     else:
         window[arrs]=time
         continue
+    continue
 #    if super_asn in uniq_supers:
 #        uniq_supers[super_asn]+=1
 

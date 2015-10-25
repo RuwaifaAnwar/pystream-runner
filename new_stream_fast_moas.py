@@ -45,7 +45,7 @@ last_id = -1
 sub_prf=0
 moases={}
 super_pref={}  #stores super_prefixes for Moases
-out = open("normal_moas.logs","a")
+out = open("22normal_moas.logs","a")
 ##########################################
 def get_peer_id(col, ip, asn):
     global info_id
@@ -113,17 +113,21 @@ while(stream.get_next_record(rec)):
                 if p_id  in pref_as[prefix]:
                     orig_as=pref_as[prefix][p_id] 
                     del pref_as[prefix][p_id]
-                    moas_table[prefix][orig_as]+=-1
-                    if ( len(moas_table[prefix]) > 1 and moas_table[prefix][orig_as] < 1  ):
-                        print "Removed"
-                        del moas_table[prefix][orig_as]
-                        printable="Moas removed Prefix "+prefix+" as_removed "+str(orig_as)+" others:"
-                        for asn in moas_table[prefix].keys():
-                           printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
-                        printable=printable+" "+str(elem.time)+"\n"
-                        out.write(printable)
-                    elif (moas_table[prefix][orig_as] < 1):
-                        del moas_table[prefix][orig_as]
+                    if orig_as in moas_table[prefix]:
+                        moas_table[prefix][orig_as]+=-1
+                        if ( len(moas_table[prefix]) > 1 and moas_table[prefix][orig_as] < 1  ):
+                            print "Removed"
+                            del moas_table[prefix][orig_as]
+                            printable="Moas removed Prefix "+prefix+" as_removed "+str(orig_as)+" others:"
+                            for asn in moas_table[prefix].keys():
+                               printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
+                            printable=printable+" "+str(elem.time)+"\n"
+                            out.write(printable)
+                        elif (moas_table[prefix][orig_as] < 1):
+                            del moas_table[prefix][orig_as]
+                            #if len(moas_table[prefix])==0:
+                            #    del moas_table[prefix]
+                            #    print "R2"                                
             elem=rec.get_next_elem()
             continue       
         
@@ -146,48 +150,79 @@ while(stream.get_next_record(rec)):
             pref_as[prefix][p_id]=orig_as        
             moas_table[prefix]={}
             moas_table[prefix][orig_as]=1
-            print "Added for",orig_as,"for pref",prefix
+#            print "Added for",orig_as,"for pref",prefix
         else:
             if p_id in pref_as[prefix]: # peerid seen before               
                 pref_as[prefix][p_id]=orig_as
-                if orig_as not in moas_table[prefix]: #rare case when peerid changes orig without prior withdrawal
-                    printable= "Moas Detected2 "+prefix+" new "+str(orig_as)+" old "
+                if len(moas_table[prefix]) > 0:
+                    
                     for asn in moas_table[prefix]:
-                        printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
-                    printable=printable+" "+str(elem.time)+"\n"
-                    out.write(printable)
-                    moas_table[prefix][orig_as]=1
+                        if asn==orig_as:
+                            #moas_table[prefix][orig_as]+=1
+                            mcheck=1
+                            break
+                    if mcheck==0:
+                        printable= "Moas Detected "+prefix+" new "+str(orig_as)+" old "
+                        #3print "MOAS ", orig_as
+                        for asn in moas_table[prefix]:
+                            printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
+                        printable=printable+" # "+str(ases)[1:-1]+" # "+str(elem.time)+"\n"
+                        out.write(printable)
+                        moas_table[prefix][orig_as]=1
 #                else:
 #                    moas_table[prefix][orig_as]+=1
                
             else: #new peer id seen
                 pref_as[prefix][p_id]={}
                 pref_as[prefix][p_id]=orig_as
-
-                if not (orig_as in moas_table[prefix]):# moas detected, new peer id, new orig asn
-
-                    moas_table[prefix][orig_as]=1
-                    printable= "Moas Detected "+prefix+" new "+str(orig_as)+" old "
-                    print "MOAS ", orig_as
+                mcheck=0
+                if len(moas_table[prefix]) > 0:
                     for asn in moas_table[prefix]:
-                        print "old",asn,
-                        if asn == orig_as:
-                            print "Match"
-                        else:
-                            print "No"
-                        printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
-                    printable=printable+" "+str(elem.time)+"\n"
-                    out.write(printable)
-                    moas_table[prefix][orig_as]=1
-                    ecc=1
-                    break
+                        if asn==orig_as:
+                            moas_table[prefix][orig_as]+=1
+                            mcheck=1
+                            break
+                    if mcheck==0:
+                        printable= "Moas Detected "+prefix+" new "+str(orig_as)+" old "
+                        #print "MOAS ", orig_as
+                        for asn in moas_table[prefix]:
+                            """
+                            print "old",asn,
+                            if asn == orig_as:
+                                print "Match"
+                            else:
+                                print "No"
+                            """
+                            printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
+                        printable=printable+" # "+str(ases)[1:-1]+" # "+str(elem.time)+"\n"
+                        out.write(printable)
+                        moas_table[prefix][orig_as]=1
+     
+                    """
+                    if orig_as in moas_table[prefix]:# moas detected, new peer id, new orig asn
+                        avcx=1
+                        moas_table[prefix][orig_as]+=1
+                    else:       
+                        moas_table[prefix][orig_as]=1
+                        printable= "Moas Detected "+prefix+" new "+str(orig_as)+" old "
+                        print "MOAS ", orig_as
+                        for asn in moas_table[prefix]:
+                            print "old",asn,
+                            if asn == orig_as:
+                                print "Match"
+                            else:
+                                print "No"
+                            printable=printable+" "+str(asn)+":"+str(moas_table[prefix][asn])
+                        printable=printable+" "+str(elem.time)+"\n"
+                        out.write(printable)
+                        moas_table[prefix][orig_as]=1
+                        ecc=1
+                        break
+                    """
 #
-                else:
-                    moas_table[prefix][orig_as]+=1
+#                else:
         elem = rec.get_next_elem()
         continue     
-    if ecc:
-        break
 print "Done"
 print elem_cnt
 print sub_prf

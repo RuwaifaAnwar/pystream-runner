@@ -19,16 +19,13 @@ stream = BGPStream()
 rec = BGPRecord()
 start_interval= 1401623715
 ##stream.add_filter('project', 'ris')
-stream.add_filter('collector', 'route-views2')
+#stream.add_filter('collector', 'route-views2')
 #stream.add_filter('collector', 'rrc04')
 stream.add_filter('record-type', 'ribs')
 stream.add_filter('record-type', 'updates')
-stream.add_interval_filter(start_interval,1406894115 )
+stream.add_interval_filter(start_interval,0 )
 stream.add_rib_period_filter(172800)
-stream.set_data_interface('mysql')
-stream.set_data_interface_option('mysql', 'db-host', 'loki-ge')
-stream.set_data_interface_option('mysql', 'db-port', '3306')
-stream.set_data_interface_option('mysql', 'db-user', 'bgpstream')
+stream.set_data_interface('broker')
 print "start bgpstream"
 stream.start()
 
@@ -136,6 +133,22 @@ def remove_sub_moas(prefix,time):
         out.write(printable)
       del super_pref[prefix]               
 ############################################################33
+def check_moas(orig_as, prefix,bgp_time):
+    global pref_as, out
+    origs=[]
+    is_moas=0
+    for p_id in pref_as[prefix]:
+        for asn in pref_as[p_id]:
+            origs.append(asn)
+            if asn==orig_as:
+                return 0
+    printable= "Moas Detected "+prefix+" new "+str(orig_as)+" old "
+    uniq_origs = set(origs)
+    printable=printable+" # "+str(origs)[1:-1]+" # "+str(elem.time)+"\n"
+    out.write(printable)
+
+    return 1
+
 prefx_dic ={}
 record_cnt = 0
 elem_cnt = 0
@@ -204,6 +217,9 @@ while(stream.get_next_record(rec)):
             pref_as[prefix]={}
             pref_as[prefix][p_id]=orig_as        
         else:
+            ##this line should output MOAS:
+            check_moas(orig_as,prefix,elem.time)
+
 #            new=0 # only check for new prefixes
             for ids in pref_as[prefix]:
                 if pref_as[prefix][ids]==orig_as:
@@ -218,6 +234,8 @@ while(stream.get_next_record(rec)):
         elem_cnt +=1
         if new and first_block:
             add_to_tree(prefix,orig_as,1,ases,elem.time)
+
+
         if (create_new):
             out.flush()
             first_block=1

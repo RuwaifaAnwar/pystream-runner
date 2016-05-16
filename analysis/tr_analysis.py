@@ -8,11 +8,13 @@ import ipaddress
 
 path_tr_files="/scratch/ruwaifa/submoas/"
 path_susp_folder="/data/routing/submoas/"
+out=open("final.txt","w")
 log_dict={}
+start_from=1461626264
 
 asndb = pyasn.pyasn('ipasn_20150224.dat')
 
-print asndb.lookup('192.8.8.8')
+print asndb.lookup('10.0.0.2')
 
 def get_susp_dict(file_path):
 	global log_dict
@@ -23,13 +25,15 @@ def get_susp_dict(file_path):
 	    	toks=line.split("|")
 	    	log_dict[toks[0]]=toks[3:5]
 
-def process_tr_hops(hops,event_id,dst_pfx):
+def process_tr_hops(hops,event_id,dst_pfx,line):
 	decision=0
+	#print "start"
 	try:
 		origins=log_dict[event_id]
 
 	except:
 		print "ERR not found"
+
 	keys=sorted(hops, key=lambda x:int(x))
 	h=[hops[x] for x in keys]
 	aspath=""
@@ -38,11 +42,14 @@ def process_tr_hops(hops,event_id,dst_pfx):
 	subasn_found=0
 	last_resolved_asn=""
 	last_hop_not_origin=0
+	asn="asn"
 	for hop in h:
+		#print hop
 		if len(hop["addr"]):
 			last_ip=hop["addr"]
 			asn=str(asndb.lookup(hop["addr"])[0])
-			if asn is not None:
+			
+			if asn.isdigit():
 				last_resolved_asn=asn
 				aspath=aspath+" "+ asn
 
@@ -58,14 +65,20 @@ def process_tr_hops(hops,event_id,dst_pfx):
 						decision=4
 						#superfound after sub
 					if asn in origins[1] and superasn_found:
-						decision=2
+						decision="inter"
 						#subasn found after super
 
-	is_same_network=ipaddress.ip_address(last_ip) in ipaddress.ip_network(dst_pfx)
+	try:
+		is_same_network=ipaddress.ip_address(last_ip) in ipaddress.ip_network(dst_pfx)
+	except Exception,e:
+		is_same_network=1
+		#print line
+		#print str(e)
+		#exit()
 	if decision > 0 and str(last_resolved_asn) not in origins:
 		last_hop_not_origin=1 
 
-	printable=aspath+"|"+str(decision)+"|"+str(is_same_network)+"|"+str(last_hop_not_origin)
+	printable=aspath+"| "+str(origins[0])+"|"+str(origins[1])+"|"+str(decision)+"|"+str(is_same_network)+"|"+str(last_hop_not_origin)
 	"""
 	print printable
 	print "origins",origins
@@ -77,23 +90,25 @@ def process_tr_hops(hops,event_id,dst_pfx):
 	return printable
 
 for tr_file in os.listdir(path_tr_files):
+	timestamp=int(tr_file.split(".")[1])
+	if timestamp < start_from:
+		continue
 	print tr_file
-	susp_file=tr_file.replace("trace","log")
-	date_f=datetime.datetime.fromtimestamp(int(tr_file.split(".")[1])).strftime('%Y-%m-%d')
+	susp_file=tr_file.replace("trace_ripe","log")
+	print timestamp
+	date_f=datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
+	print date_f
 	susp_file_path=path_susp_folder+date_f+"/"+susp_file
 	get_susp_dict(susp_file_path)
 	printable=""
 	with gzip.open(path_tr_files+tr_file, 'rb') as f:
 	    for line in f:
 	    	tr=json.loads(line)
-	    	res=process_tr_hops(tr["hops"],tr["event_id"], tr["dst_pfx"])
+	    	res=process_tr_hops(tr["hops"],tr["event_id"], tr["dst_pfx"],line)
 	    	# printable=tr["event_id"]+"|"+tr["dst_pfx"]+"|"+tr["m_id"]
-	    	printable=tr["event_id"]+"|"+tr["dst_pfx"]+"|"+str(tr["m_id"])+"|"+res
+	    	printable=tr["event_id"]+"|"+tr["dst_pfx"]+"|"+str(tr["m_id"])+"|"+res+"\n"
+	    	out.write(printable)
+#	    	print printable
+	#exit()
+out.close()
 
-	    	print printable
-	    	exit()
-
-
-	print susp_file_path
-	print date_f
-	exit()
